@@ -5,7 +5,7 @@ from Crypto import Random
 
 def usage():
     if len(sys.argv) != 2:
-        print "To use: ", sys.argv[0], "Server IP"
+        print "To use: ", sys.argv[0], "[Server IP] [Server Port]"
         sys.exit()
 
 #key to authenticating the packet
@@ -16,6 +16,7 @@ saltySpatoon = "How tough areyou"
 crypt = AES.new(secretKey, AES.MODE_CFB, saltySpatoon)
 
 #Connection Variables
+#Will change to commandline arguments
 HOST = "127.0.0.1"
 PORT = 8509
 
@@ -37,7 +38,7 @@ while True:
 	if decryptedData.startswith(authPacket) == True:
 		newData = decryptedData[20:]
 		#Print the output
-		if newData == "exit":	
+		if newData == "exit":
 			sys.exit()
 		else:
 			print newData

