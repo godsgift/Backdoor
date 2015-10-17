@@ -187,6 +187,8 @@ def receiveOutput(pkt):
         return
     elif DHCP in pkt:
         return
+    elif UDP in pkt:
+    	return
     elif pkt[IP].src == destIP:
         flagSet = pkt['TCP'].flags
         if flagSet == long(128):
@@ -202,6 +204,8 @@ def receiveOutput(pkt):
                     sys.exit()
                 else:
                     print output
+    else:
+    	return
 
 if __name__ == "__main__":
     usage()
