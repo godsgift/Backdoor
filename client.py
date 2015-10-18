@@ -23,7 +23,7 @@ from Crypto.Cipher import AES
 #	python client.py 192.168.0.12 8505 8506
 ######################################################################
 def usage():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print "To use: ", sys.argv[0], "[Server IP] [Server Port] [Client Port]"
         sys.exit()
 
