@@ -1,3 +1,30 @@
+######################################################################
+#   Created by: Elton Sia A00800541
+#   
+#   File: client.py
+#
+#   Description:
+#   Once the client.py is running, it waits for user to type in a 
+#   command. It then adds an authentication string at the start and 
+#   then encrypts the command using AES encryption algorithm. Once 
+#   encryption is done, it is then sent the server. Once it sends to
+#   the server, we go into receiving mode and sniff for packets for 3 
+#   seconds. Once we receive the packet we decrypt it and check if the
+#   packet has the flag set to "C". If it does we then decrypt the data
+#   and check if the decrypted data has the authentication string. If 
+#   it does, we delete the authentication string and check if the output
+#   is an exit command or not. If it is an exit command, we exit the 
+#   program, if not then we print the output.
+#
+#   Functions:
+#   usage()
+#   stopfilter()
+#   encryptCommand()
+#   decryptCommand()
+#   sendCOmmand()
+#   receiveOutput()
+######################################################################
+
 import sys
 from scapy.all import *
 from Crypto.Cipher import AES

